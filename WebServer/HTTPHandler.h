@@ -17,9 +17,15 @@ class HTTPHandler
 {
 protected:
 	std::string docRoot;
+	HTTPClient cliInfo;
+
+	std::string HTTPHandler::trimRequestSlash(char *strPtr);
+	char *parseDocRequest(char *httpBuf);
+
 public:
-	void httpHandler(HTTPClient cliInfo, std::string docRootParam);
+	void httpHandler(HTTPClient cliInfoParam, std::string docRootParam);
 	bool isPython(std::string docRequest);
 	std::string readFile(std::string filePath);
 
+	~HTTPHandler();
 };

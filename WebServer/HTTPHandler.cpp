@@ -1,8 +1,15 @@
 #include "HTTPHandler.h"
 
-void HTTPHandler::httpHandler(HTTPClient cliInfo, std::string docRootParam)
+HTTPHandler::~HTTPHandler()
+{
+	closesocket(cliInfo.clientSock);
+}
+
+void HTTPHandler::httpHandler(HTTPClient cliInfoParam, std::string docRootParam)
 {
 	docRoot = docRootParam;
+	cliInfo = cliInfoParam;
+
 	char buf[1024];
 	const int recvbufLen = sizeof(buf);
 	int readBytes;
@@ -11,11 +18,8 @@ void HTTPHandler::httpHandler(HTTPClient cliInfo, std::string docRootParam)
 		readBytes = recv(cliInfo.clientSock, buf, recvbufLen, 0);
 		if (readBytes > 0)
 		{
-			char *docRequestStr = strtok(buf, "\n");
-			char *docRequest = strtok(docRequestStr, " ");
-			docRequest = strtok(NULL, " ");
-
-			if (docRequest == NULL)
+			char *docRequest = parseDocRequest(buf);
+			if (docRequest == NULL) //Is the request malformed? protect from null pointer
 				break;
 
 			if (isPython(docRequest))
@@ -26,9 +30,7 @@ void HTTPHandler::httpHandler(HTTPClient cliInfo, std::string docRootParam)
 
 			std::cout << docRequest << " from " << cliInfo.ip() << std::endl;
 
-			std::string file = docRequest;
-			file.erase(0, 1);
-			std::string html = readFile(file);
+			std::string html = readFile(trimRequestSlash(docRequest));
 
 			std::stringstream resp;
 			resp << "HTTP/1.1 200 OK\r\n"
@@ -39,6 +41,7 @@ void HTTPHandler::httpHandler(HTTPClient cliInfo, std::string docRootParam)
 		}
 	}
 	while (readBytes > 0);
+	closesocket(cliInfo.clientSock);
 }
 
 bool HTTPHandler::isPython(std::string docRequest)
@@ -71,4 +74,19 @@ std::string HTTPHandler::readFile(std::string filePath)
 		hFile.close();
 	}
 	return fileBuf;
+}
+
+std::string HTTPHandler::trimRequestSlash(char *strPtr)
+{
+	std::string req = strPtr;
+	req.erase(0, 1);
+	return req;
+}
+
+char *HTTPHandler::parseDocRequest(char *httpBuf)
+{
+	char *docRequestStr = strtok(httpBuf, "\n");
+	char *docRequest = strtok(docRequestStr, " ");
+	docRequest = strtok(NULL, " ");
+	return docRequest;
 }
