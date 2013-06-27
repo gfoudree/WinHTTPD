@@ -1,7 +1,7 @@
 #include "HTTPServer.h"
 
 
-HTTPServer::HTTPServer(void)
+HTTPServer::HTTPServer(std::string docRootParam)
 {
 	WSAStartup(MAKEWORD(2,2), &this->wsadata);
 	memset(&this->srv, 0, sizeof(srv));
@@ -10,6 +10,8 @@ HTTPServer::HTTPServer(void)
 	srv.ai_socktype = SOCK_STREAM;
 	srv.ai_protocol = IPPROTO_TCP;
 	srv.ai_flags = AI_PASSIVE;
+
+	docRoot = docRootParam;
 }
 
 
@@ -40,7 +42,8 @@ void HTTPServer::startListen(const char *port)
 		httpCli.clientSock = accept(serverSock, (sockaddr*)&httpCli.cliInfo, &addrlen);
 		httpClients.push_back(httpCli);
 
-		boost::thread hThread(httpHandler, httpCli); 
+		HTTPHandler hp;
+		boost::thread hThread(boost::bind(&HTTPHandler::httpHandler, &hp, httpCli, docRoot)); 
 		threadGroup.add_thread(&hThread);
 	}
 }

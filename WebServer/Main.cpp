@@ -6,9 +6,9 @@
 
 #pragma comment(lib, "Ws2_32.lib")
 
-int main()
+int main(int argc, char **argv)
 {
-	HTTPServer httpd;
+	HTTPServer httpd("C:\\Users\\Grant\\Desktop\\");
 	try {
 	httpd.startListen("9990");
 	}

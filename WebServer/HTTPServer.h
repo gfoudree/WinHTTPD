@@ -24,9 +24,10 @@ protected:
 
 public:
 	SOCKET serverSock;
+	std::string docRoot;
 
 	void startListen(const char *port);
 
-	HTTPServer(void);
+	HTTPServer(std::string docRootParam);
 	~HTTPServer(void);
 };
