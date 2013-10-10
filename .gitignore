@@ -55,6 +55,7 @@ ipch/
 *.psess
 *.vsp
 *.vspx
+*.pro
 
 # Guidance Automation Toolkit
 *.gpState

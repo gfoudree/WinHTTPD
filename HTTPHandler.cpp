@@ -18,6 +18,7 @@ void HTTPHandler::httpHandler(HTTPClient cliInfoParam, std::string docRootParam)
 		readBytes = recv(cliInfo.clientSock, buf, recvbufLen, 0);
 		if (readBytes > 0)
 		{
+            int httpStatus = 200;
 			char *docRequest = parseDocRequest(buf);
 			if (docRequest == NULL) //Is the request malformed? protect from null pointer
 				break;
@@ -31,17 +32,54 @@ void HTTPHandler::httpHandler(HTTPClient cliInfoParam, std::string docRootParam)
 			{
 				//Python module requested, execute python file
 				PythonModule pm;
-                data = pm.runPythonScript(docFile);
+                try
+                {
+                    data = pm.runPythonScript(docFile);
+                }
+                catch (int error)
+                {
+                    httpStatus = error;
+                }
 			}
             else
             {
-                data = readFile(docFile);
+                try
+                {
+                    data = readFile(docFile);
+                }
+                catch (int error)
+                {
+                    httpStatus = error;
+                }
             }
 
 			std::stringstream resp;
-			resp << "HTTP/1.1 200 OK\r\n"
-				"Server: nginx/1.24\r\n"
-                "Content-Length: " << data.length() << "\r\nContent-Type: text/html\r\n\r\n" << data;
+            resp << "HTTP/1.1 ";
+
+            switch(httpStatus)
+            {
+                case 200:
+                {
+                    resp << "200 OK\r\n";
+                }
+                break;
+
+                case 500:
+                {
+                    resp << "500 Internal Server Error\r\n";
+                    data = "<h1>500 Internal Server Error<h1>";
+                }
+                break;
+
+                case 404:
+                {
+                    resp << "404 Not Found\r\n";
+                    data = "<h1>404 Not Found<h1>";
+                }
+                break;
+            }
+
+            resp << "Server: WinHTTPD/1.00\r\nContent-Length: " << data.length() << "\r\nContent-Type: text/html\r\nConnection: close\r\n\r\n" << data;
 
 			send(cliInfo.clientSock, resp.str().c_str(), strlen(resp.str().c_str()) + 1, 0);
 		}
@@ -78,6 +116,11 @@ std::string HTTPHandler::readFile(std::string filePath)
 		}
 		hFile.close();
 	}
+    else
+    {
+        throw 404;
+    }
+
 	return fileBuf;
 }
 
