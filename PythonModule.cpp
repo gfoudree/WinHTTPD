@@ -20,7 +20,7 @@ std::string PythonModule::runPythonScript(std::string path)
 	if (hProc == NULL)
 	{
 		std::cout << "Unable to execute python file at " << path.c_str();
-        throw 500;
+        	throw 500;
 	}
 
 	while (fgets(buf, 127, hProc))
