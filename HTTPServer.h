@@ -1,3 +1,7 @@
+#ifndef HTTPSERVER_H
+#define HTTPSERVER_H
+
+#define _WIN32_WINNT 0x501
 #define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
 #include <winsock2.h>
@@ -31,3 +35,5 @@ public:
 	HTTPServer(std::string docRootParam);
 	~HTTPServer(void);
 };
+
+#endif

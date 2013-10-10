@@ -1,4 +1,6 @@
-#pragma once
+#ifndef HTTPHANDLER_H
+#define HTTPHANDLER_H
+
 #define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
 #include <winsock2.h>
@@ -19,7 +21,8 @@ protected:
 	std::string docRoot;
 	HTTPClient cliInfo;
 
-	std::string HTTPHandler::trimRequestSlash(char *strPtr);
+    std::string trimRequestSlash(char *strPtr);
+    std::string requestToRoot(char *request);
 	char *parseDocRequest(char *httpBuf);
 
 public:
@@ -29,3 +32,5 @@ public:
 
 	~HTTPHandler();
 };
+
+#endif

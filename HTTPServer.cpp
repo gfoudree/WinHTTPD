@@ -24,7 +24,7 @@ HTTPServer::~HTTPServer(void)
 
 void HTTPServer::startListen(const char *port)
 {
-	if (getaddrinfo(NULL, port, &srv, &result) != 0)
+    if (getaddrinfo(NULL, port, &srv, &result) != 0)
 		throw "Error in getaddrinfo()";
 	serverSock = socket(result->ai_family, result->ai_socktype, result->ai_protocol);
 	if (serverSock == INVALID_SOCKET)

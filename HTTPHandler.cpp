@@ -22,20 +22,26 @@ void HTTPHandler::httpHandler(HTTPClient cliInfoParam, std::string docRootParam)
 			if (docRequest == NULL) //Is the request malformed? protect from null pointer
 				break;
 
+            std::string docFile = requestToRoot((char*)trimRequestSlash(docRequest).c_str());
+            std::string data;
+
+            std::cout << docRequest << " from " << cliInfo.ip() << std::endl;
+
 			if (isPython(docRequest))
 			{
 				//Python module requested, execute python file
 				PythonModule pm;
+                data = pm.runPythonScript(docFile);
 			}
-
-			std::cout << docRequest << " from " << cliInfo.ip() << std::endl;
-
-			std::string html = readFile(trimRequestSlash(docRequest));
+            else
+            {
+                data = readFile(docFile);
+            }
 
 			std::stringstream resp;
 			resp << "HTTP/1.1 200 OK\r\n"
 				"Server: nginx/1.24\r\n"
-				"Content-Length: " << html.length() << "\r\nContent-Type: text/html\r\n\r\n" << html;
+                "Content-Length: " << data.length() << "\r\nContent-Type: text/html\r\n\r\n" << data;
 
 			send(cliInfo.clientSock, resp.str().c_str(), strlen(resp.str().c_str()) + 1, 0);
 		}
@@ -60,15 +66,14 @@ bool HTTPHandler::isPython(std::string docRequest)
 
 std::string HTTPHandler::readFile(std::string filePath)
 {
-	filePath.insert(0, this->docRoot);
 	std::string fileBuf;
-	std::ifstream hFile (filePath, std::ios::binary);
+    std::ifstream hFile(filePath.c_str(), std::ios::binary);
 	if (hFile.is_open())
 	{
 		while (hFile.good())
 		{
 			std::string tmpStr;
-			getline(hFile, tmpStr);
+            getline(hFile, tmpStr);
 			fileBuf.append(tmpStr);
 		}
 		hFile.close();
@@ -89,4 +94,12 @@ char *HTTPHandler::parseDocRequest(char *httpBuf)
 	char *docRequest = strtok(docRequestStr, " ");
 	docRequest = strtok(NULL, " ");
 	return docRequest;
+}
+
+std::string HTTPHandler::requestToRoot(char *request)
+{
+    std::string retStr = docRoot;
+    retStr.append("\\");
+    retStr.append(request);
+    return retStr;
 }
